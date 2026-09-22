@@ -13,11 +13,11 @@ $is_search = !empty($search_query);
 try {
     if ($is_search) {
         $like_query = "%" . $search_query . "%";
-        $stmt = $pdo->prepare("SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out FROM visitors WHERE name LIKE :query OR phone_number LIKE :query ORDER BY time_in DESC");
+        $stmt = $pdo->prepare("SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, entered_by FROM visitors WHERE name LIKE :query OR phone_number LIKE :query ORDER BY time_in DESC");
         $stmt->execute([':query' => $like_query]);
     } else {
         // Default: Fetch latest 20 records
-        $stmt = $pdo->prepare("SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out FROM visitors ORDER BY time_in DESC LIMIT 20");
+        $stmt = $pdo->prepare("SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, entered_by FROM visitors ORDER BY time_in DESC LIMIT 20");
         $stmt->execute();
     }
     
@@ -156,6 +156,9 @@ try {
                                     <div class="text-slate-500 dark:text-cyan-200 text-sm mt-1 flex items-center gap-1.5 tracking-widest">
                                         <i class="ph ph-phone text-xs dark:text-cyan-500"></i>
                                         <?php echo htmlspecialchars($record['phone_number']); ?>
+                                    </div>
+                                    <div class="text-slate-500 dark:text-cyan-400 text-xs mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider">
+                                        <i class="ph-fill ph-shield-check text-brand-500"></i> Guard: <?php echo htmlspecialchars($record['entered_by'] ?? 'Unknown'); ?>
                                     </div>
                                 </td>
                                 <td class="p-4 align-top max-w-xs">

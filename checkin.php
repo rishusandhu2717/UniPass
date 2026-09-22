@@ -33,18 +33,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $msgType = 'error';
             } else {
                 // Calculate daily_seq: count of today's entries + 1
-                $seq_stmt = $pdo->query("SELECT COUNT(*) FROM visitors WHERE DATE(time_in) = CURDATE()");
+                $seq_stmt = $pdo->query("SELECT COUNT(*) FROM visitors WHERE DATE(time_in) = " . db_curdate());
                 $today_count = (int)$seq_stmt->fetchColumn();
                 $daily_seq = $today_count + 1;
 
-                // Insert visitor directly as 'Inside' with daily_seq
-                $stmt = $pdo->prepare("INSERT INTO visitors (name, phone_number, host_department, purpose_details, status, time_in, daily_seq) VALUES (:name, :phone, :dept, :purpose, 'Inside', CURRENT_TIMESTAMP, :seq)");
+                // Get current user from session
+                $entered_by = $_SESSION['username'] ?? 'Unknown';
+
+                // Insert visitor directly as 'Inside' with daily_seq and entered_by
+                $stmt = $pdo->prepare("INSERT INTO visitors (name, phone_number, host_department, purpose_details, status, time_in, daily_seq, entered_by) VALUES (:name, :phone, :dept, :purpose, 'Inside', CURRENT_TIMESTAMP, :seq, :entered_by)"); // CURRENT_TIMESTAMP is standard SQL (works on both MySQL & PostgreSQL)
                 $stmt->execute([
-                    ':name'    => $name,
-                    ':phone'   => $phone,
-                    ':dept'    => $department,
-                    ':purpose' => $purpose,
-                    ':seq'     => $daily_seq,
+                    ':name'       => $name,
+                    ':phone'      => $phone,
+                    ':dept'       => $department,
+                    ':purpose'    => $purpose,
+                    ':seq'        => $daily_seq,
+                    ':entered_by' => $entered_by,
                 ]);
 
                 $visitor_id = $pdo->lastInsertId();

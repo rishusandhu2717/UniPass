@@ -7,7 +7,7 @@ require_once 'config.php';
 // Fetch Active Visitors
 $active_visitors = [];
 try {
-    $stmt = $pdo->query("SELECT id, name, phone_number, host_department, time_in FROM visitors WHERE status = 'Inside' ORDER BY time_in DESC");
+    $stmt = $pdo->query("SELECT id, name, phone_number, host_department, time_in, entered_by FROM visitors WHERE status = 'Inside' ORDER BY time_in DESC");
     $active_visitors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log($e->getMessage());
@@ -19,13 +19,13 @@ $metric_inside = 0;
 $metric_checked_out = 0;
 
 try {
-    $m_stmt1 = $pdo->query("SELECT COUNT(*) FROM visitors WHERE DATE(time_in) = CURRENT_DATE");
+    $m_stmt1 = $pdo->query("SELECT COUNT(*) FROM visitors WHERE DATE(time_in) = " . db_curdate());
     $metric_total_today = $m_stmt1->fetchColumn();
     
     $m_stmt2 = $pdo->query("SELECT COUNT(*) FROM visitors WHERE status = 'Inside'");
     $metric_inside = $m_stmt2->fetchColumn();
     
-    $m_stmt3 = $pdo->query("SELECT COUNT(*) FROM visitors WHERE status = 'Checked Out' AND DATE(time_out) = CURRENT_DATE");
+    $m_stmt3 = $pdo->query("SELECT COUNT(*) FROM visitors WHERE status = 'Checked Out' AND DATE(time_out) = " . db_curdate());
     $metric_checked_out = $m_stmt3->fetchColumn();
 } catch (PDOException $e) {
     error_log($e->getMessage());
@@ -98,6 +98,7 @@ try {
                         <th class="p-4 font-semibold text-xs uppercase tracking-wider">Name</th>
                         <th class="p-4 font-semibold text-xs uppercase tracking-wider">Phone</th>
                         <th class="p-4 font-semibold text-xs uppercase tracking-wider">Department</th>
+                        <th class="p-4 font-semibold text-xs uppercase tracking-wider">Guard</th>
                         <th class="p-4 font-semibold text-xs uppercase tracking-wider">Time In</th>
                         <th class="p-4 font-semibold text-xs uppercase tracking-wider">Elapsed</th>
                         <th class="p-4 font-semibold text-xs uppercase tracking-wider text-right">View</th>
@@ -124,6 +125,10 @@ try {
                                 <td class="p-4 text-slate-600 dark:text-cyan-200 text-sm align-middle"><?php echo htmlspecialchars($visitor['phone_number']); ?></td>
                                 <td class="p-4 align-middle">
                                     <span class="inline-flex px-2 py-1 rounded text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-[#020617] dark:text-cyan-400 dark:border-cyan-500/50"><?php echo htmlspecialchars($visitor['host_department']); ?></span>
+                                </td>
+                                <td class="p-4 text-slate-600 dark:text-cyan-200 text-xs font-bold align-middle uppercase tracking-wide">
+                                    <i class="ph-fill ph-shield-check text-brand-500 dark:text-cyan-400 mr-1"></i>
+                                    <?php echo htmlspecialchars($visitor['entered_by'] ?? 'Unknown'); ?>
                                 </td>
                                 <td class="p-4 text-slate-500 dark:text-cyan-300 text-sm align-middle"><?php echo date('h:i A', strtotime($visitor['time_in'])); ?></td>
                                 <td class="p-4 text-amber-600 dark:text-amber-400 font-mono text-sm font-bold align-middle"><?php echo $elapsed; ?></td>

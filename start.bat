@@ -3,6 +3,10 @@ echo ========================================================
 echo         Starting UniPass Visitor Management System
 echo ========================================================
 echo.
+echo  DB Strategy: MySQL (Primary) -- Supabase (Auto-Fallback)
+echo  ^> If MySQL/XAMPP is running  : uses LOCAL MySQL
+echo  ^> If MySQL is NOT running    : auto-switches to Supabase
+echo.
 echo Server is running at: http://localhost:8000
 echo Press Ctrl+C in this window to stop the server.
 echo.

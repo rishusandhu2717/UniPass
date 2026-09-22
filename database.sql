@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS visitors (
     status VARCHAR(20) DEFAULT 'Pending',
     time_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     time_out TIMESTAMP NULL,
+    entered_by VARCHAR(50) NULL,
     CHECK (status IN ('Pending', 'Inside', 'Checked Out', 'Rejected'))
 );
 

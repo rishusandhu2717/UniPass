@@ -1,3 +1,9 @@
 [21-Sep-2026 16:12:10 Europe/Berlin] Database connection failed: SQLSTATE[HY000] [1049] Unknown database 'vms_db'
 [22-Sep-2026 06:43:51 Europe/Berlin] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
 [22-Sep-2026 06:43:55 Europe/Berlin] Database connection failed: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it
+[22-Sep-2026 16:09:39 Europe/Berlin] [UniPass] MySQL unavailable (SQLSTATE[HY000] [2002] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond). Switching to Supabase...
+[22-Sep-2026 16:09:39 Europe/Berlin] [UniPass] Supabase also failed: could not find driver
+[22-Sep-2026 16:09:43 Europe/Berlin] [UniPass] MySQL unavailable (SQLSTATE[HY000] [2002] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond). Switching to Supabase...
+[22-Sep-2026 16:09:43 Europe/Berlin] [UniPass] Supabase also failed: could not find driver
+[22-Sep-2026 16:21:08 Europe/Berlin] [UniPass] MySQL unavailable (SQLSTATE[HY000] [2002] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond). Switching to Supabase...
+[22-Sep-2026 16:21:08 Europe/Berlin] [UniPass] Supabase also failed: could not find driver

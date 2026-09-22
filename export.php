@@ -31,11 +31,13 @@ fputcsv($output, [
     'Purpose of Visit', 
     'Status', 
     'Time In', 
-    'Time Out'
+    'Time Out',
+    'Entered By'
 ]);
 
 try {
     $params = [];
+    // DATE() function works on both MySQL and PostgreSQL
     $where_clauses = ["DATE(time_in) = :date_filter"];
     $params[':date_filter'] = $date_filter;
 
@@ -46,7 +48,7 @@ try {
     }
 
     $where = implode(' AND ', $where_clauses);
-    $sql = "SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out 
+    $sql = "SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, entered_by 
             FROM visitors 
             WHERE $where 
             ORDER BY time_in ASC";
@@ -65,6 +67,7 @@ try {
             $row['status'],
             $row['time_in'] ? date('d-m-Y h:i A', strtotime($row['time_in'])) : '-',
             $row['time_out'] ? date('d-m-Y h:i A', strtotime($row['time_out'])) : '-',
+            $row['entered_by'] ?? 'Unknown',
         ]);
     }
 } catch (PDOException $e) {
