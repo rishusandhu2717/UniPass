@@ -7,7 +7,7 @@ require_once 'config.php';
 // Fetch Active Visitors
 $active_visitors = [];
 try {
-    $stmt = $pdo->query("SELECT id, daily_seq, name, phone_number, host_department, time_in, entered_by FROM visitors WHERE status = 'Inside' ORDER BY time_in DESC");
+    $stmt = $pdo->query("SELECT id, daily_seq, name, phone_number, host_department, time_in, checked_in_by, entered_by FROM visitors WHERE status = 'Inside' ORDER BY time_in DESC");
     $active_visitors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log($e->getMessage());
@@ -192,9 +192,9 @@ try {
                                     <td class="p-3.5 align-middle">
                                         <span class="inline-flex px-2 py-0.5 rounded text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-[#020617] dark:text-cyan-400 dark:border-cyan-500/50"><?php echo htmlspecialchars($visitor['host_department']); ?></span>
                                     </td>
-                                    <td class="p-3.5 text-slate-600 dark:text-cyan-200 text-xs font-semibold align-middle uppercase">
+                                    <td class="p-3.5 text-slate-600 dark:text-cyan-200 text-xs font-semibold align-middle">
                                         <i class="ph-fill ph-shield-check text-brand-500 dark:text-cyan-400 mr-1"></i>
-                                        <?php echo htmlspecialchars($visitor['entered_by'] ?? 'Staff'); ?>
+                                        <?php echo htmlspecialchars($visitor['checked_in_by'] ?: ($visitor['entered_by'] ?: 'Staff')); ?>
                                     </td>
                                     <td class="p-3.5 text-slate-500 dark:text-cyan-300 text-xs font-mono align-middle"><?php echo date('h:i A', strtotime($visitor['time_in'])); ?></td>
                                     <td class="p-3.5 text-amber-600 dark:text-amber-400 font-mono text-xs font-bold align-middle"><?php echo $elapsed; ?></td>

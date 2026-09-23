@@ -22,7 +22,7 @@ try {
     $params = [];
 
     if (!empty($search_query)) {
-        $where[] = "(name LIKE :query OR phone_number LIKE :query OR entered_by LIKE :query)";
+        $where[] = "(name LIKE :query OR phone_number LIKE :query OR checked_in_by LIKE :query OR checked_out_by LIKE :query OR entered_by LIKE :query)";
         $params[':query'] = "%" . $search_query . "%";
     }
 
@@ -50,7 +50,7 @@ try {
     $total_pages = ceil($total_records / $per_page);
 
     // Fetch paginated records
-    $stmt = $pdo->prepare("SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, entered_by, checked_out_by FROM visitors $where_sql ORDER BY time_in DESC LIMIT $per_page OFFSET $offset");
+    $stmt = $pdo->prepare("SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, checked_in_by, checked_out_by, entered_by FROM visitors $where_sql ORDER BY time_in DESC LIMIT $per_page OFFSET $offset");
     $stmt->execute($params);
     $search_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -214,7 +214,7 @@ try {
                                     <div class="flex items-center gap-1.5 text-slate-700 dark:text-cyan-100 mb-1 font-medium font-mono">
                                         <i class="ph-fill ph-arrow-circle-right text-emerald-500 dark:text-cyan-400 text-sm"></i>
                                         <span><?php echo date('d M y, h:i A', strtotime($record['time_in'])); ?></span>
-                                        <span class="text-[10px] text-slate-400 uppercase font-sans">(by <?php echo htmlspecialchars($record['entered_by'] ?? 'Staff'); ?>)</span>
+                                        <span class="text-[10px] text-slate-400 font-sans">(by <?php echo htmlspecialchars($record['checked_in_by'] ?: ($record['entered_by'] ?: 'Staff')); ?>)</span>
                                     </div>
                                     <?php if ($record['time_out']): ?>
                                         <div class="flex items-center gap-1.5 text-slate-500 dark:text-rose-400 font-medium font-mono">

@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS visitors (
     time_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     time_out TIMESTAMP NULL,
     daily_seq INT NULL,
+    checked_in_by VARCHAR(100) NULL,
+    checked_out_by VARCHAR(100) NULL,
     entered_by VARCHAR(50) NULL,
-    checked_out_by VARCHAR(50) NULL,
     CHECK (status IN ('Pending', 'Inside', 'Checked Out', 'Rejected'))
 );
 
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS visitors (
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
+    full_name VARCHAR(100) NULL,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if (!empty($username) && !empty($password)) {
             try {
-                $stmt = $pdo->prepare("SELECT id, username, password_hash, role FROM users WHERE username = :username");
+                $stmt = $pdo->prepare("SELECT id, username, full_name, password_hash, role FROM users WHERE username = :username");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -37,9 +37,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     session_regenerate_id(true);
 
                     // Login successful
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['role'] = $user['role'];
+                    $_SESSION['user_id']   = $user['id'];
+                    $_SESSION['username']  = $user['username'];
+                    $_SESSION['full_name'] = !empty($user['full_name']) ? $user['full_name'] : $user['username'];
+                    $_SESSION['role']      = $user['role'];
                     
                     if ($user['role'] === 'admin') {
                         header("Location: dashboard.php");
@@ -69,12 +70,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="text-center mb-8 pb-4 border-b border-slate-200 dark:border-cyan-500/30">
             <div class="w-16 h-16 mx-auto bg-brand-50 dark:bg-cyan-900/40 rounded-2xl text-brand-600 dark:text-cyan-400 dark:shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center justify-center mb-4 border dark:border-cyan-500/50">
-                <i class="ph-fill ph-lock-key text-4xl drop-shadow-md"></i>
+                <i class="ph-fill ph-shield-check text-4xl drop-shadow-md"></i>
             </div>
             <h2 class="text-3xl font-bold text-slate-900 dark:text-cyan-50 tracking-tight drop-shadow-md">
-                System Access
+                Gate Registry Access
             </h2>
-            <p class="text-slate-500 dark:text-cyan-300 mt-2 font-medium tracking-wide">Enter your credentials to proceed.</p>
+            <p class="text-slate-500 dark:text-cyan-300 mt-2 font-medium tracking-wide">Enter your guard or admin credentials.</p>
         </div>
 
         <?php if ($error): ?>
@@ -93,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-cyan-500">
                         <i class="ph ph-user"></i>
                     </div>
-                    <input type="text" id="username" name="username" required class="input-glass w-full pl-10" placeholder="admin or gate" autocomplete="username">
+                    <input type="text" id="username" name="username" required class="input-glass w-full pl-10" placeholder="e.g. guard.harsh or admin" autocomplete="username">
                 </div>
             </div>
 
@@ -109,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="pt-4">
                 <button type="submit" class="w-full bg-slate-900 dark:bg-cyan-500/10 text-white dark:text-cyan-400 hover:bg-brand-600 dark:hover:bg-cyan-500 dark:hover:text-white font-black py-4 px-6 rounded-xl transition-all shadow-lg border border-transparent dark:border-cyan-500/50 hover:shadow-brand-500/30 dark:hover:shadow-[0_0_20px_rgba(6,182,212,0.6)] flex items-center justify-center gap-2 text-lg uppercase tracking-widest">
-                    <i class="ph-bold ph-sign-in"></i> Authenticate
+                    <i class="ph-bold ph-sign-in"></i> Sign In to Gate
                 </button>
             </div>
         </form>

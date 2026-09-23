@@ -136,7 +136,7 @@
                         <!-- User Role Badge -->
                         <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-cyan-950/60 border border-slate-200 dark:border-cyan-500/30 text-slate-600 dark:text-cyan-300">
                             <i class="ph-fill ph-user-circle text-sm text-brand-500"></i>
-                            <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'User'); ?></span>
+                            <span><?php echo htmlspecialchars($_SESSION['full_name'] ?? ($_SESSION['username'] ?? 'User')); ?></span>
                             <span class="px-1.5 py-0.2 rounded text-[10px] uppercase font-mono <?php echo ($_SESSION['role'] ?? '') === 'admin' ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300' : 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-300'; ?>">
                                 <?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?>
                             </span>
@@ -190,7 +190,7 @@
             <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-cyan-500/30 px-6 py-4 space-y-3 bg-white/95 dark:bg-[#070e1b]/95 backdrop-blur-lg">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-cyan-900/50 text-xs">
                     <span class="text-slate-500 dark:text-cyan-600 font-semibold">Logged in:</span>
-                    <span class="font-bold text-slate-900 dark:text-cyan-100"><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?> (<?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?>)</span>
+                    <span class="font-bold text-slate-900 dark:text-cyan-100"><?php echo htmlspecialchars($_SESSION['full_name'] ?? ($_SESSION['username'] ?? '')); ?> (<?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?>)</span>
                 </div>
                 <?php if ($_SESSION['role'] === 'admin'): ?>
                     <a href="dashboard.php" class="block py-2 text-sm font-bold text-slate-700 dark:text-cyan-200 hover:text-brand-500 flex items-center gap-2">

@@ -10,6 +10,7 @@ $visitor_name = '';
 $visitor_dept = '';
 $visitor_time_in = '';
 $daily_seq = 1;
+$active_guard_name = $_SESSION['full_name'] ?? ($_SESSION['username'] ?? 'Guard');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $submitted_token = $_POST['csrf_token'] ?? '';
@@ -42,18 +43,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $seq_stmt = $pdo->query("SELECT COALESCE(MAX(daily_seq), 0) + 1 FROM visitors WHERE DATE(time_in) = " . db_curdate());
                     $daily_seq = (int)$seq_stmt->fetchColumn();
 
-                    // Get logged in guard
-                    $entered_by = $_SESSION['username'] ?? 'Unknown';
+                    // Guard name from active session
+                    $checked_in_by = !empty($_SESSION['full_name']) ? $_SESSION['full_name'] : ($_SESSION['username'] ?? 'Guard');
 
-                    // Insert visitor directly as 'Inside'
-                    $stmt = $pdo->prepare("INSERT INTO visitors (name, phone_number, host_department, purpose_details, status, time_in, daily_seq, entered_by) VALUES (:name, :phone, :dept, :purpose, 'Inside', CURRENT_TIMESTAMP, :seq, :entered_by)");
+                    // Insert visitor with checked_in_by and entered_by
+                    $stmt = $pdo->prepare("INSERT INTO visitors (name, phone_number, host_department, purpose_details, status, time_in, daily_seq, checked_in_by, entered_by) 
+                                           VALUES (:name, :phone, :dept, :purpose, 'Inside', CURRENT_TIMESTAMP, :seq, :guard_name, :guard_name)");
                     $stmt->execute([
                         ':name'       => $name,
                         ':phone'      => $phone,
                         ':dept'       => $department,
                         ':purpose'    => $purpose,
                         ':seq'        => $daily_seq,
-                        ':entered_by' => $entered_by,
+                        ':guard_name' => $checked_in_by,
                     ]);
 
                     $visitor_id = $pdo->lastInsertId();
@@ -84,29 +86,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <?php include 'includes/header.php'; ?>
 
-<!-- Include QRCode library for high-speed client-side QR generation -->
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
 <?php if ($msgType === 'success' && $visitor_id): ?>
 
 <div class="max-w-md mx-auto animate-fade-in">
-    <div id="visitor-pass" class="glass-panel p-8 rounded-2xl relative overflow-hidden text-center border-2 border-brand-500 dark:border-cyan-500 shadow-2xl shadow-brand-500/20 dark:shadow-[0_0_30px_rgba(6,182,212,0.4)] mb-6">
-        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-600 to-cyan-400 dark:shadow-[0_0_15px_rgba(6,182,212,1)]"></div>
+    <div id="visitor-pass" class="glass-panel p-8 rounded-3xl relative overflow-hidden text-center border-2 border-brand-500 dark:border-cyan-500 shadow-2xl shadow-brand-500/20 dark:shadow-[0_0_30px_rgba(6,182,212,0.4)] mb-6">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-indigo-600 via-cyan-500 to-emerald-400"></div>
         
-        <!-- Scannable QR Code -->
-        <div class="mx-auto w-32 h-32 bg-white p-2 rounded-2xl border-2 border-slate-200 dark:border-cyan-500/50 shadow-md flex items-center justify-center mb-4 mt-2">
-            <div id="qrcode" class="flex items-center justify-center"></div>
+        <!-- Campus Badge Emblem (NO QR CODE) -->
+        <div class="w-24 h-24 mx-auto bg-slate-100 dark:bg-cyan-950/60 rounded-full border-4 border-white dark:border-cyan-500/50 shadow-lg flex items-center justify-center mb-5 mt-2">
+            <i class="ph-fill ph-identification-badge text-5xl text-brand-600 dark:text-cyan-400 drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]"></i>
         </div>
         
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/50 mb-3 shadow-sm">
             <i class="ph-fill ph-check-circle text-sm"></i> ACCESS GRANTED
         </div>
         
-        <h3 class="text-3xl font-black text-slate-900 dark:text-cyan-50 uppercase tracking-widest mb-1 drop-shadow-sm">Visitor Pass</h3>
+        <h3 class="text-3xl font-black text-slate-900 dark:text-cyan-50 uppercase tracking-widest mb-0.5 drop-shadow-sm">Visitor Pass</h3>
         <p class="text-brand-600 dark:text-cyan-400 font-mono text-base mb-1 font-bold tracking-widest">ID: #<?php echo str_pad($visitor_id, 5, '0', STR_PAD_LEFT); ?></p>
-        <p class="text-slate-400 dark:text-cyan-600 font-mono text-xs mb-6 tracking-wider">Today's Token: <span class="font-black text-slate-700 dark:text-cyan-400 text-sm">#<?php echo $daily_seq; ?></span></p>
+        <p class="text-slate-400 dark:text-cyan-600 font-mono text-xs mb-6 tracking-wider">Today's Token: <span class="font-black text-slate-700 dark:text-cyan-300 text-sm">#<?php echo $daily_seq; ?></span></p>
         
-        <div class="text-left bg-slate-50 dark:bg-[#020617] p-5 rounded-xl border border-slate-200 dark:border-cyan-500/40 space-y-3.5 shadow-inner mb-2">
+        <div class="text-left bg-slate-50 dark:bg-[#020617] p-5 rounded-2xl border border-slate-200 dark:border-cyan-500/40 space-y-3.5 shadow-inner mb-2">
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-cyan-900/50 pb-2.5">
                 <span class="text-xs text-slate-500 dark:text-cyan-600 uppercase tracking-wider font-bold">Name</span>
                 <span class="text-slate-900 dark:text-cyan-100 font-bold tracking-wide text-base"><?php echo htmlspecialchars($visitor_name); ?></span>
@@ -120,8 +119,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <span class="text-slate-900 dark:text-cyan-100 font-semibold tracking-wide text-sm"><?php echo date('h:i A \o\n M d', strtotime($visitor_time_in)); ?></span>
             </div>
             <div class="flex justify-between items-center">
-                <span class="text-xs text-slate-500 dark:text-cyan-600 uppercase tracking-wider font-bold">Gate Guard</span>
-                <span class="text-brand-600 dark:text-cyan-400 font-semibold text-xs tracking-wide uppercase"><?php echo htmlspecialchars($_SESSION['username'] ?? 'Staff'); ?></span>
+                <span class="text-xs text-slate-500 dark:text-cyan-600 uppercase tracking-wider font-bold">Checked In By</span>
+                <span class="text-brand-600 dark:text-cyan-400 font-bold text-xs tracking-wider uppercase flex items-center gap-1">
+                    <i class="ph-fill ph-shield-check"></i>
+                    <?php echo htmlspecialchars($active_guard_name); ?>
+                </span>
             </div>
         </div>
     </div>
@@ -135,22 +137,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </a>
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const qrEl = document.getElementById("qrcode");
-        if (qrEl) {
-            new QRCode(qrEl, {
-                text: window.location.origin + "/CMS/checkout.php?action=checkout&id=<?php echo $visitor_id; ?>",
-                width: 112,
-                height: 112,
-                colorDark: "#020617",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-        }
-    });
-</script>
 
 <style>
     @media print {
@@ -171,13 +157,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="max-w-2xl mx-auto glass-panel p-8 rounded-2xl relative overflow-hidden">
     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-emerald-400 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
 
-    <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-200 dark:border-cyan-500/30">
-        <div class="p-2 bg-brand-50 dark:bg-cyan-900/40 rounded-lg text-brand-600 dark:text-cyan-400 dark:shadow-[0_0_10px_rgba(6,182,212,0.5)]">
-            <i class="ph ph-identification-badge text-2xl"></i>
+    <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200 dark:border-cyan-500/30">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-brand-50 dark:bg-cyan-900/40 rounded-xl text-brand-600 dark:text-cyan-400 dark:shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+                <i class="ph ph-identification-badge text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-cyan-50 tracking-tight drop-shadow-md">Visitor Check-In</h2>
+                <p class="text-xs text-slate-500 dark:text-cyan-600 mt-0.5">Campus Gate Registry</p>
+            </div>
         </div>
-        <div>
-            <h2 class="text-3xl font-bold text-slate-900 dark:text-cyan-50 tracking-tight drop-shadow-md">Visitor Check-In</h2>
-            <p class="text-xs text-slate-500 dark:text-cyan-600 mt-0.5">Campus Gate Registry & Digital Pass Issuer</p>
+        <!-- Duty Guard Indicator -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-cyan-950/60 border border-slate-200 dark:border-cyan-500/30 text-xs">
+            <i class="ph-fill ph-shield-check text-brand-500"></i>
+            <span class="text-slate-500 dark:text-slate-400">On Duty:</span>
+            <span class="font-bold text-slate-900 dark:text-cyan-200"><?php echo htmlspecialchars($active_guard_name); ?></span>
         </div>
     </div>
 
@@ -218,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="name" class="block text-sm font-bold text-slate-700 dark:text-cyan-300 uppercase tracking-wider">Full Name</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-cyan-500"><i class="ph ph-user"></i></div>
-                    <input type="text" id="name" name="name" required class="input-glass w-full pl-10" placeholder="John Doe" autocomplete="name">
+                    <input type="text" id="name" name="name" required class="input-glass w-full pl-10" placeholder="Visitor Name" autocomplete="name">
                 </div>
             </div>
         </div>
@@ -244,7 +238,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="space-y-2">
             <label for="purpose_details" class="block text-sm font-bold text-slate-700 dark:text-cyan-300 uppercase tracking-wider">Purpose of Visit</label>
-            <textarea id="purpose_details" name="purpose_details" rows="3" required class="input-glass w-full resize-none" placeholder="State specific reason for visit (e.g. Admission inquiry, Document verification, Guest lecture)..."></textarea>
+            <textarea id="purpose_details" name="purpose_details" rows="3" required class="input-glass w-full resize-none" placeholder="State reason for visit..."></textarea>
         </div>
 
         <div class="pt-2">
@@ -256,7 +250,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
 <script>
-    // Debounced Returning Visitor Auto-Lookup
     const phoneInput = document.getElementById('phone_number');
     const nameInput = document.getElementById('name');
     const deptSelect = document.getElementById('host_department');

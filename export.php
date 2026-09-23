@@ -53,7 +53,7 @@ try {
     }
 
     $where = !empty($where_clauses) ? "WHERE " . implode(' AND ', $where_clauses) : "";
-    $sql = "SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, entered_by, checked_out_by 
+    $sql = "SELECT daily_seq, id, name, phone_number, host_department, purpose_details, status, time_in, time_out, checked_in_by, checked_out_by, entered_by 
             FROM visitors 
             $where 
             ORDER BY time_in DESC";
@@ -72,7 +72,7 @@ try {
             $row['status'],
             $row['time_in'] ? date('d-m-Y h:i A', strtotime($row['time_in'])) : '-',
             $row['time_out'] ? date('d-m-Y h:i A', strtotime($row['time_out'])) : '-',
-            $row['entered_by'] ?? 'Staff',
+            $row['checked_in_by'] ?: ($row['entered_by'] ?: 'Staff'),
             $row['checked_out_by'] ?? '-',
         ]);
     }

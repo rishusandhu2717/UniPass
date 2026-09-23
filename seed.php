@@ -1,23 +1,21 @@
 <?php
-// seed.php — Cross-compatible for MySQL and TiDB Cloud
+// seed.php — Seed application users for MySQL and TiDB Cloud
 require_once 'config.php';
 
-$admin_hash  = password_hash('admin', PASSWORD_DEFAULT);
-$gate_hash   = password_hash('gate', PASSWORD_DEFAULT);
-$ramesh_hash = password_hash('ramesh123', PASSWORD_DEFAULT);
-$suresh_hash = password_hash('suresh123', PASSWORD_DEFAULT);
-$amit_hash   = password_hash('amit123', PASSWORD_DEFAULT);
-
 $users = [
-    ['admin', $admin_hash, 'admin'],
-    ['gate', $gate_hash, 'gate'],
-    ['ramesh', $ramesh_hash, 'gate'],
-    ['suresh', $suresh_hash, 'gate'],
-    ['amit', $amit_hash, 'gate']
+    ['admin',       'Administrator', password_hash('admin', PASSWORD_DEFAULT),     'admin'],
+    ['guard.harsh', 'Guard Harsh',   password_hash('harsh123', PASSWORD_DEFAULT),  'gate'],
+    ['guard.inder', 'Guard Inder',   password_hash('inder123', PASSWORD_DEFAULT),  'gate'],
+    ['guard.preet', 'Guard Preet',   password_hash('preet123', PASSWORD_DEFAULT),  'gate'],
 ];
 
 foreach ($users as $u) {
-    $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), role = VALUES(role)");
+    $stmt = $pdo->prepare("INSERT INTO users (username, full_name, password_hash, role) 
+                           VALUES (?, ?, ?, ?) 
+                           ON DUPLICATE KEY UPDATE 
+                           full_name = VALUES(full_name), 
+                           password_hash = VALUES(password_hash), 
+                           role = VALUES(role)");
     $stmt->execute($u);
 }
 
