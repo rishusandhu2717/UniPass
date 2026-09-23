@@ -2,9 +2,9 @@
 // api/check_status.php
 header('Content-Type: application/json');
 
-// We need config, but auth might redirect if not logged in.
-// Since the Kiosk is logged in as 'gate', the session should be valid.
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../config.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -25,14 +25,16 @@ if (!$id) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id, name, host_department, status, time_in FROM visitors WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, name, host_department, status, time_in, time_out, entered_by, checked_out_by FROM visitors WHERE id = ?");
     $stmt->execute([$id]);
     $visitor = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($visitor) {
-        // Format time if they are approved
-        if ($visitor['status'] === 'Inside' && $visitor['time_in']) {
-            $visitor['formatted_time'] = date('h:i A \o\n M d', strtotime($visitor['time_in']));
+        if ($visitor['time_in']) {
+            $visitor['formatted_time_in'] = date('h:i A \o\n M d', strtotime($visitor['time_in']));
+        }
+        if ($visitor['time_out']) {
+            $visitor['formatted_time_out'] = date('h:i A \o\n M d', strtotime($visitor['time_out']));
         }
         echo json_encode(['success' => true, 'data' => $visitor]);
     } else {

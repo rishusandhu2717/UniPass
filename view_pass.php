@@ -1,4 +1,5 @@
 <?php
+// view_pass.php
 require_once 'includes/auth.php';
 require_once 'config.php';
 
@@ -7,28 +8,47 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-$id = $_GET['id'];
+$id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
+if (!$id) {
+    die("Invalid pass ID.");
+}
+
 $stmt = $pdo->prepare("SELECT * FROM visitors WHERE id = ?");
 $stmt->execute([$id]);
 $visitor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$visitor || $visitor['status'] !== 'Inside') {
-    die("Invalid pass or visitor is not active.");
+if (!$visitor) {
+    die("Visitor record not found.");
 }
+
+$is_active = ($visitor['status'] === 'Inside');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Visitor Pass #<?php echo $id; ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Pass #<?php echo str_pad($visitor['id'], 5, '0', STR_PAD_LEFT); ?> - UniPass</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
+        body { font-family: 'Inter', sans-serif; }
         @media print {
             body * { visibility: hidden; }
             #visitor-pass, #visitor-pass * { visibility: visible; }
-            #visitor-pass { position: absolute; left: 0; top: 0; width: 100%; border: 2px solid black !important; box-shadow: none !important; }
-            button { display: none; }
+            #visitor-pass { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                border: 2px solid black !important; 
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+            }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -36,41 +56,95 @@ if (!$visitor || $visitor['status'] !== 'Inside') {
 
     <div class="max-w-md w-full">
         <!-- Digital Visitor Pass -->
-        <div id="visitor-pass" class="bg-white border-2 border-brand-500 rounded-2xl shadow-2xl p-8 text-center relative overflow-hidden mb-6">
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-600 to-cyan-400"></div>
+        <div id="visitor-pass" class="bg-white border-2 border-cyan-500 rounded-3xl shadow-2xl p-8 text-center relative overflow-hidden mb-6">
+            <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-600 via-cyan-500 to-emerald-400"></div>
             
-            <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full border-4 border-white shadow-md flex items-center justify-center mb-6 mt-2">
-                <i class="ph-fill ph-user text-5xl text-slate-400"></i>
+            <!-- Campus Header -->
+            <div class="flex items-center justify-center gap-2 mb-4 mt-1">
+                <i class="ph-bold ph-identification-badge text-2xl text-cyan-600"></i>
+                <h1 class="text-xl font-black tracking-tight text-slate-900">Uni<span class="text-cyan-600">Pass</span></h1>
+                <span class="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded">GATE PASS</span>
+            </div>
+
+            <!-- Scannable QR Code -->
+            <div class="w-32 h-32 mx-auto bg-white p-2 rounded-2xl border-2 border-slate-200 shadow-md flex items-center justify-center mb-4">
+                <div id="qrcode"></div>
             </div>
             
-            <h3 class="text-3xl font-bold text-slate-900 uppercase tracking-widest mb-1">Visitor</h3>
-            <p class="text-cyan-600 font-mono text-base mb-8 font-bold tracking-widest">ID: #<?php echo str_pad($visitor['id'], 5, '0', STR_PAD_LEFT); ?></p>
+            <div class="mb-3">
+                <?php if ($is_active): ?>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ACTIVE &bull; INSIDE CAMPUS
+                    </span>
+                <?php else: ?>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-300">
+                        <i class="ph-bold ph-check text-sm"></i> CHECKED OUT
+                    </span>
+                <?php endif; ?>
+            </div>
+
+            <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-0.5"><?php echo htmlspecialchars($visitor['name']); ?></h2>
+            <p class="text-cyan-700 font-mono text-sm font-bold tracking-widest mb-1">PASS #<?php echo str_pad($visitor['id'], 5, '0', STR_PAD_LEFT); ?></p>
+            <?php if (!empty($visitor['daily_seq'])): ?>
+                <p class="text-slate-400 text-xs font-mono mb-6">Today's Token: <strong>#<?php echo $visitor['daily_seq']; ?></strong></p>
+            <?php else: ?>
+                <div class="mb-6"></div>
+            <?php endif; ?>
             
-            <div class="text-left bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4 shadow-inner">
-                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                    <span class="text-sm text-slate-500 uppercase tracking-wider font-bold">Name</span>
-                    <span class="text-slate-900 font-semibold tracking-wide text-lg"><?php echo htmlspecialchars($visitor['name']); ?></span>
+            <div class="text-left bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 shadow-inner">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-bold">Contact</span>
+                    <span class="text-slate-900 font-mono font-semibold text-sm"><?php echo htmlspecialchars($visitor['phone_number']); ?></span>
                 </div>
-                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                    <span class="text-sm text-slate-500 uppercase tracking-wider font-bold">Dept</span>
-                    <span class="text-slate-900 font-semibold tracking-wide"><?php echo htmlspecialchars($visitor['host_department']); ?></span>
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-bold">Department</span>
+                    <span class="text-slate-900 font-bold text-sm"><?php echo htmlspecialchars($visitor['host_department']); ?></span>
                 </div>
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-bold">Time In</span>
+                    <span class="text-slate-900 font-semibold text-xs"><?php echo date('d M y, h:i A', strtotime($visitor['time_in'])); ?></span>
+                </div>
+                <?php if ($visitor['time_out']): ?>
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="text-xs text-slate-500 uppercase tracking-wider font-bold">Time Out</span>
+                        <span class="text-rose-600 font-semibold text-xs"><?php echo date('d M y, h:i A', strtotime($visitor['time_out'])); ?></span>
+                    </div>
+                <?php endif; ?>
                 <div class="flex justify-between items-center">
-                    <span class="text-sm text-slate-500 uppercase tracking-wider font-bold">Time In</span>
-                    <span class="text-slate-900 font-semibold tracking-wide"><?php echo date('h:i A \o\n M d', strtotime($visitor['time_in'])); ?></span>
+                    <span class="text-xs text-slate-500 uppercase tracking-wider font-bold">Issued By</span>
+                    <span class="text-cyan-700 font-bold text-xs uppercase"><?php echo htmlspecialchars($visitor['entered_by'] ?? 'Guard'); ?></span>
                 </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-slate-200 text-center">
+                <p class="text-[11px] text-slate-400">Please present this pass to the security guard upon exit.</p>
             </div>
         </div>
 
-        <div class="flex gap-4">
-            <a href="dashboard.php" class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
-                Back
-            </a>
-            <button onclick="window.print()" class="w-2/3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2">
+        <div class="flex gap-4 no-print">
+            <button onclick="window.history.back()" class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 text-sm uppercase tracking-wider">
+                <i class="ph-bold ph-arrow-left"></i> Back
+            </button>
+            <button onclick="window.print()" class="w-2/3 bg-cyan-600 hover:bg-cyan-500 text-white font-black py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2 text-sm uppercase tracking-wider">
                 <i class="ph-bold ph-printer text-xl"></i> Print Pass
             </button>
         </div>
     </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const qrEl = document.getElementById("qrcode");
+            if (qrEl) {
+                new QRCode(qrEl, {
+                    text: window.location.origin + "/CMS/checkout.php?action=checkout&id=<?php echo $visitor['id']; ?>",
+                    width: 112,
+                    height: 112,
+                    colorDark: "#020617",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        });
+    </script>
 </body>
 </html>

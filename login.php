@@ -1,5 +1,9 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    session_start();
+}
 require_once 'config.php';
 
 // If already logged in, redirect based on role
@@ -15,36 +19,44 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    if (!empty($username) && !empty($password)) {
-        try {
-            $stmt = $pdo->prepare("SELECT id, username, password_hash, role FROM users WHERE username = :username");
-            $stmt->execute([':username' => $username]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($user && password_verify($password, $user['password_hash'])) {
-                // Login successful
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role'];
-                
-                if ($user['role'] === 'admin') {
-                    header("Location: dashboard.php");
-                } else {
-                    header("Location: checkin.php");
-                }
-                exit();
-            } else {
-                $error = 'Invalid username or password.';
-            }
-        } catch (PDOException $e) {
-            error_log('Login DB Error: ' . $e->getMessage());
-            $error = 'An internal system error occurred.';
-        }
+    $submitted_token = $_POST['csrf_token'] ?? '';
+    if (!verify_csrf_token($submitted_token)) {
+        $error = 'Security validation failed (Invalid CSRF token). Please try again.';
     } else {
-        $error = 'Please enter both username and password.';
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if (!empty($username) && !empty($password)) {
+            try {
+                $stmt = $pdo->prepare("SELECT id, username, password_hash, role FROM users WHERE username = :username");
+                $stmt->execute([':username' => $username]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($user && password_verify($password, $user['password_hash'])) {
+                    // Prevent Session Fixation
+                    session_regenerate_id(true);
+
+                    // Login successful
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['role'] = $user['role'];
+                    
+                    if ($user['role'] === 'admin') {
+                        header("Location: dashboard.php");
+                    } else {
+                        header("Location: checkin.php");
+                    }
+                    exit();
+                } else {
+                    $error = 'Invalid username or password.';
+                }
+            } catch (PDOException $e) {
+                error_log('Login DB Error: ' . $e->getMessage());
+                $error = 'An internal system error occurred.';
+            }
+        } else {
+            $error = 'Please enter both username and password.';
+        }
     }
 }
 ?>
@@ -73,13 +85,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
 
         <form method="POST" action="login.php" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token()); ?>">
+
             <div class="space-y-2">
                 <label for="username" class="block text-sm font-bold text-slate-700 dark:text-cyan-300 uppercase tracking-wider">Username</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-cyan-500">
                         <i class="ph ph-user"></i>
                     </div>
-                    <input type="text" id="username" name="username" required class="input-glass w-full pl-10" placeholder="admin or gate">
+                    <input type="text" id="username" name="username" required class="input-glass w-full pl-10" placeholder="admin or gate" autocomplete="username">
                 </div>
             </div>
 
@@ -89,7 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-cyan-500">
                         <i class="ph ph-lock"></i>
                     </div>
-                    <input type="password" id="password" name="password" required class="input-glass w-full pl-10" placeholder="••••••••">
+                    <input type="password" id="password" name="password" required class="input-glass w-full pl-10" placeholder="••••••••" autocomplete="current-password">
                 </div>
             </div>
 
