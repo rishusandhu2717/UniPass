@@ -6,15 +6,7 @@ services:
     branch: main
     healthCheckPath: /login.php
     envVars:
+      - key: DATABASE_URL
+        value: mysql://44Hq83chaYcfhH4.root:sOQIKKdgdiIJ9OAo@gateway01.ap-northeast-1.prod.aws.tidbcloud.com:4000/sys
       - key: FORCE_TIDB_CLOUD
         value: "true"
-      - key: TIDB_HOST
-        value: gateway01.ap-northeast-1.prod.aws.tidbcloud.com
-      - key: TIDB_PORT
-        value: "4000"
-      - key: TIDB_NAME
-        value: vms_db
-      - key: TIDB_USER
-        value: 44Hq83chaYcfhH4.root
-      - key: TIDB_PASS
-        value: sOQIKKdgdiIJ9OAo

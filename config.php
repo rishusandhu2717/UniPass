@@ -11,6 +11,13 @@ ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/error.log');
 
 // ============================================================
+// ENVIRONMENT VARIABLE & DATABASE_URL PARSING (Render & Cloud)
+// Supports single connection string (e.g. DATABASE_URL or MYSQL_URL)
+// ============================================================
+$db_url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL');
+$parsed_url = !empty($db_url) ? parse_url($db_url) : null;
+
+// ============================================================
 // PRIMARY: MySQL (Local XAMPP) Configuration
 // ============================================================
 define('DB_HOST',     getenv('DB_HOST') ?: 'localhost');
@@ -22,14 +29,17 @@ define('DB_PASSWORD', getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : 
 // ============================================================
 // ONLINE CLOUD: TiDB Cloud MySQL Configuration
 // ============================================================
-define('TIDB_HOST',     getenv('TIDB_HOST') ?: 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com');
-define('TIDB_PORT',     getenv('TIDB_PORT') ?: '4000');
-define('TIDB_NAME',     getenv('TIDB_NAME') ?: 'vms_db');
-define('TIDB_USER',     getenv('TIDB_USER') ?: '44Hq83chaYcfhH4.root');
-define('TIDB_PASS',     getenv('TIDB_PASS') ?: 'sOQIKKdgdiIJ9OAo');
+define('TIDB_HOST',     $parsed_url['host'] ?? (getenv('TIDB_HOST') ?: 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com'));
+define('TIDB_PORT',     $parsed_url['port'] ?? (getenv('TIDB_PORT') ?: '4000'));
+define('TIDB_USER',     $parsed_url['user'] ?? (getenv('TIDB_USER') ?: '44Hq83chaYcfhH4.root'));
+define('TIDB_PASS',     $parsed_url['pass'] ?? (getenv('TIDB_PASS') ?: 'sOQIKKdgdiIJ9OAo'));
+
+// App Database name: if connection string has '/sys' or empty, use 'vms_db'
+$url_db = isset($parsed_url['path']) ? ltrim($parsed_url['path'], '/') : '';
+define('TIDB_NAME',     (!empty($url_db) && $url_db !== 'sys') ? $url_db : (getenv('TIDB_NAME') ?: 'vms_db'));
 
 // Detect Render Cloud Environment or explicit flag
-$is_cloud_environment = getenv('RENDER') || getenv('FORCE_TIDB_CLOUD') === 'true';
+$is_cloud_environment = getenv('RENDER') || !empty($db_url) || getenv('FORCE_TIDB_CLOUD') === 'true';
 define('FORCE_TIDB_CLOUD', $is_cloud_environment);
 
 // ============================================================
@@ -77,7 +87,7 @@ if ($pdo === null) {
         // Ensure application schema and timezone are active
         $pdo->exec("CREATE DATABASE IF NOT EXISTS " . TIDB_NAME . "; USE " . TIDB_NAME . ";");
         $pdo->exec("SET time_zone = '+05:30';");
-        error_log("[UniPass] Connected to TiDB Cloud MySQL.");
+        error_log("[UniPass] Connected to TiDB Cloud MySQL (" . TIDB_NAME . ").");
 
     } catch (PDOException $e) {
         // Both failed — show user-friendly error
