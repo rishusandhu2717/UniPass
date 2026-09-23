@@ -157,21 +157,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="max-w-2xl mx-auto glass-panel p-8 rounded-2xl relative overflow-hidden">
     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-emerald-400 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
 
-    <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200 dark:border-cyan-500/30">
-        <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-brand-50 dark:bg-cyan-900/40 rounded-xl text-brand-600 dark:text-cyan-400 dark:shadow-[0_0_10px_rgba(6,182,212,0.5)]">
-                <i class="ph ph-identification-badge text-2xl"></i>
-            </div>
-            <div>
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-cyan-50 tracking-tight drop-shadow-md">Visitor Check-In</h2>
-                <p class="text-xs text-slate-500 dark:text-cyan-600 mt-0.5">Campus Gate Registry</p>
-            </div>
+    <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-200 dark:border-cyan-500/30">
+        <div class="p-2.5 bg-brand-50 dark:bg-cyan-900/40 rounded-xl text-brand-600 dark:text-cyan-400 dark:shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+            <i class="ph ph-identification-badge text-2xl"></i>
         </div>
-        <!-- Duty Guard Indicator -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-cyan-950/60 border border-slate-200 dark:border-cyan-500/30 text-xs">
-            <i class="ph-fill ph-shield-check text-brand-500"></i>
-            <span class="text-slate-500 dark:text-slate-400">On Duty:</span>
-            <span class="font-bold text-slate-900 dark:text-cyan-200"><?php echo htmlspecialchars($active_guard_name); ?></span>
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-cyan-50 tracking-tight drop-shadow-md">Visitor Check-In</h2>
+            <p class="text-xs text-slate-500 dark:text-cyan-600 mt-0.5">Campus Gate Registry</p>
         </div>
     </div>
 

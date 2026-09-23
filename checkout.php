@@ -74,23 +74,15 @@ try {
 <div class="glass-panel p-8 rounded-2xl relative overflow-hidden mb-8">
     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-orange-400 shadow-[0_0_10px_rgba(244,63,94,0.8)]"></div>
 
-    <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200 dark:border-rose-500/30">
-        <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-rose-50 dark:bg-rose-900/40 rounded-xl text-rose-600 dark:text-rose-400 dark:shadow-[0_0_10px_rgba(244,63,94,0.5)]">
-                <i class="ph ph-sign-out text-2xl"></i>
-            </div>
-            <div>
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-rose-50 tracking-tight drop-shadow-md">
-                    Visitor Check-Out
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-rose-300 mt-0.5">Log visitor exit timestamps and assign departure guard</p>
-            </div>
+    <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-200 dark:border-rose-500/30">
+        <div class="p-2.5 bg-rose-50 dark:bg-rose-900/40 rounded-xl text-rose-600 dark:text-rose-400 dark:shadow-[0_0_10px_rgba(244,63,94,0.5)]">
+            <i class="ph ph-sign-out text-2xl"></i>
         </div>
-        <!-- Duty Guard Indicator -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-rose-950/60 border border-slate-200 dark:border-rose-500/30 text-xs">
-            <i class="ph-fill ph-shield-check text-rose-500"></i>
-            <span class="text-slate-500 dark:text-slate-400">On Duty:</span>
-            <span class="font-bold text-slate-900 dark:text-rose-200"><?php echo htmlspecialchars($active_guard_name); ?></span>
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-rose-50 tracking-tight drop-shadow-md">
+                Visitor Check-Out
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-rose-300 mt-0.5">Log visitor exit timestamps and assign departure guard</p>
         </div>
     </div>
 

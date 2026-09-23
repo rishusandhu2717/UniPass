@@ -132,7 +132,7 @@
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
                     
-                    <div class="hidden md:flex space-x-5 items-center">
+                    <div class="hidden lg:flex space-x-4 items-center">
                         <!-- User Role Badge -->
                         <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-cyan-950/60 border border-slate-200 dark:border-cyan-500/30 text-slate-600 dark:text-cyan-300">
                             <i class="ph-fill ph-user-circle text-sm text-brand-500"></i>
@@ -177,7 +177,7 @@
 
                 <!-- Mobile Menu Hamburger Button -->
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-cyan-400 focus:outline-none" title="Open Menu">
+                    <button onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-cyan-400 focus:outline-none" title="Open Menu">
                         <i id="mobile-menu-icon" class="ph-bold ph-list text-2xl"></i>
                     </button>
                 <?php endif; ?>
@@ -187,7 +187,7 @@
 
         <!-- Mobile Drawer Navigation -->
         <?php if (isset($_SESSION['user_id'])): ?>
-            <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-cyan-500/30 px-6 py-4 space-y-3 bg-white/95 dark:bg-[#070e1b]/95 backdrop-blur-lg">
+            <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-200 dark:border-cyan-500/30 px-6 py-4 space-y-3 bg-white/95 dark:bg-[#070e1b]/95 backdrop-blur-lg">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-cyan-900/50 text-xs">
                     <span class="text-slate-500 dark:text-cyan-600 font-semibold">Logged in:</span>
                     <span class="font-bold text-slate-900 dark:text-cyan-100"><?php echo htmlspecialchars($_SESSION['full_name'] ?? ($_SESSION['username'] ?? '')); ?> (<?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?>)</span>
