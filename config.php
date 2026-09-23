@@ -13,23 +13,24 @@ ini_set('error_log', __DIR__ . '/error.log');
 // ============================================================
 // PRIMARY: MySQL (Local XAMPP) Configuration
 // ============================================================
-define('DB_HOST',     'localhost');
-define('DB_PORT',     '3306');
-define('DB_NAME',     'vms_db');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
+define('DB_HOST',     getenv('DB_HOST') ?: 'localhost');
+define('DB_PORT',     getenv('DB_PORT') ?: '3306');
+define('DB_NAME',     getenv('DB_NAME') ?: 'vms_db');
+define('DB_USERNAME', getenv('DB_USERNAME') ?: 'root');
+define('DB_PASSWORD', getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '');
 
 // ============================================================
 // ONLINE CLOUD: TiDB Cloud MySQL Configuration
 // ============================================================
-define('TIDB_HOST',     'gateway01.ap-northeast-1.prod.aws.tidbcloud.com');
-define('TIDB_PORT',     '4000');
-define('TIDB_NAME',     'vms_db'); // Application database on TiDB cluster
-define('TIDB_USER',     '44Hq83chaYcfhH4.root');
-define('TIDB_PASS',     'sOQIKKdgdiIJ9OAo');
+define('TIDB_HOST',     getenv('TIDB_HOST') ?: 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com');
+define('TIDB_PORT',     getenv('TIDB_PORT') ?: '4000');
+define('TIDB_NAME',     getenv('TIDB_NAME') ?: 'vms_db');
+define('TIDB_USER',     getenv('TIDB_USER') ?: '44Hq83chaYcfhH4.root');
+define('TIDB_PASS',     getenv('TIDB_PASS') ?: 'sOQIKKdgdiIJ9OAo');
 
-// Set to true to bypass local MySQL and connect directly to TiDB Cloud
-define('FORCE_TIDB_CLOUD', false);
+// Detect Render Cloud Environment or explicit flag
+$is_cloud_environment = getenv('RENDER') || getenv('FORCE_TIDB_CLOUD') === 'true';
+define('FORCE_TIDB_CLOUD', $is_cloud_environment);
 
 // ============================================================
 // SMART CONNECTION: MySQL Local first, TiDB Cloud fallback
@@ -37,7 +38,7 @@ define('FORCE_TIDB_CLOUD', false);
 $pdo = null;
 $db_driver = 'mysql';
 
-// --- Step 1: Try Local MySQL (if not forced to TiDB Cloud) ---
+// --- Step 1: Try Local MySQL (if not in Cloud environment) ---
 if (!FORCE_TIDB_CLOUD) {
     try {
         $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";

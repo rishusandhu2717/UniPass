@@ -1,0 +1,9 @@
+.git
+.vscode
+error.log
+start.bat
+scratch/
+Dockerfile
+.dockerignore
+render.yaml
+README.md
